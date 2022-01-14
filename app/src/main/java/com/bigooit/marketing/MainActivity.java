@@ -1,5 +1,6 @@
 package com.bigooit.marketing;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.facebook.AccessToken;
@@ -8,10 +9,13 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.util.Log;
 import android.view.View;
 
 import androidx.navigation.NavController;
@@ -28,6 +32,8 @@ import android.view.MenuItem;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
@@ -36,37 +42,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // On Android, the SDK's app activation helper should be invoked
-        // once when the application is created, so in your Application class's onCreate method
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        AppEventsLogger.activateApp(getApplication());
-
-        // Respond to login result
-        CallbackManager callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().registerCallback(callbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        // App code
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        // App code
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-                        // App code
-                    }
-                });
-
-
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-
-        // LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -83,6 +58,37 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+
+        // LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
+        binding.loginButton.setPermissions("email","public_profile");
+        binding.loginButton.registerCallback(CallbackManager.Factory.create(),
+                new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+                        // App code
+                        Log.d("FacebookCallback<LoginResult>()", "onSuccess" + loginResult);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        // App code
+                        Log.d("FacebookCallback<LoginResult>()", "onCancel" );
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+                        // App code
+                        Log.d("FacebookCallback<LoginResult>()", "onError" + exception);
+                    }
+                });
+
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+
+        Log.d("checking2nd", "isLoggedIn "+isLoggedIn);
+
+
     }
 
     @Override
