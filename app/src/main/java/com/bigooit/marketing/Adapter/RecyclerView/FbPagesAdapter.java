@@ -24,6 +24,7 @@ public class FbPagesAdapter extends RecyclerView.Adapter<FbPagesAdapter.ViewHold
 
     public interface FbPageHandler{
         void onClickFbPage(FbPage page);
+
     }
 
     /**

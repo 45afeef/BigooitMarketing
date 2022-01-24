@@ -1,9 +1,13 @@
 package com.bigooit.marketing.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -15,13 +19,21 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements FbPagesAdapter.FbPageHandler {
 
@@ -51,11 +63,17 @@ public class MainActivity extends AppCompatActivity implements FbPagesAdapter.Fb
         binding.loginButton.registerCallback(CallbackManager.Factory.create(),
                 new FacebookCallback<LoginResult>() {
                     @Override
-                    public void onSuccess(LoginResult loginResult) {loadFbPages();}
+                    public void onSuccess(LoginResult loginResult) {
+                        // User logged in using facebook account
+                        // Now just save or update the user info to firebase firestore
+                        saveFbUserInfoToFireStore(loginResult.toString());
+
+                        loadFbPages();
+                    }
                     @Override
                     public void onCancel() {Snackbar.make(binding.loginButton, "Login cancelled", Snackbar.LENGTH_LONG).show();}
                     @Override
-                    public void onError(FacebookException exception) {Snackbar.make(binding.loginButton, "Error on login", Snackbar.LENGTH_LONG).show();}
+                    public void onError(@NonNull FacebookException exception) {Snackbar.make(binding.loginButton, "Error on login", Snackbar.LENGTH_LONG).show();}
                 });
 
         accessToken = AccessToken.getCurrentAccessToken();
@@ -74,6 +92,34 @@ public class MainActivity extends AppCompatActivity implements FbPagesAdapter.Fb
         });
     }
 
+    private void saveFbUserInfoToFireStore(String loginResult) {
+        GraphRequest.newMeRequest(
+                AccessToken.getCurrentAccessToken(),
+                (jsonObject, graphResponse) -> {
+
+
+                    try {
+                        Map<String,String> user = new HashMap<>();
+                        user.put("name",jsonObject.getString("name"));
+                        user.put("id",jsonObject.getString("id"));
+
+                        FirebaseFirestore.getInstance()
+                                .collection("dummyUser")
+                                .document(user.get("id"))
+                                .set(user)
+                                .addOnCompleteListener(task -> {
+                                    Log.d("Added User",task.toString());
+                                    Toast.makeText(this, "Completed the task", Toast.LENGTH_SHORT).show();
+                                });
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+        ).executeAsync();
+
+    }
+
     private void loadFbPages() {
         // get the user's pages
         GraphRequest request = GraphRequest.newGraphPathRequest(
@@ -83,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements FbPagesAdapter.Fb
                     ArrayList<FbPage> fbPageArrayList = new ArrayList<>();
 
                     try {
-                        JSONArray fbPages = response.getJsonObject().getJSONArray("data");
+                        JSONArray fbPages = Objects.requireNonNull(response.getJsonObject()).getJSONArray("data");
                         for (int i = 0; i < fbPages.length(); i++)
                             fbPageArrayList.add(new FbPage(fbPages.getJSONObject(i)));
                     } catch (JSONException e) {
@@ -100,11 +146,12 @@ public class MainActivity extends AppCompatActivity implements FbPagesAdapter.Fb
 
         request.executeAsync();
 
-        //"id": "17914372193136603"
     }
 
     @Override
     public void onClickFbPage(FbPage page) {
-        Toast.makeText(this, page.getName(), Toast.LENGTH_SHORT).show();
+        Intent fbPageDetailsIntent = new Intent(this,FbPageDetailsActivity.class);
+        fbPageDetailsIntent.putExtra("page",page);
+        this.startActivity(fbPageDetailsIntent);
     }
 }

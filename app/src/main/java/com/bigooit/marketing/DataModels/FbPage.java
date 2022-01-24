@@ -1,16 +1,20 @@
 package com.bigooit.marketing.DataModels;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class FbPage {
+public class FbPage implements Parcelable{
     private String token;
     private String category ;
-    private JSONArray categoryList ;
-    private String name ;
     private String id ;
+    private String name ;
+    private long instagramBusinessAccountId;
     private JSONArray tasks ;
+    private JSONArray categoryList ;
 
     public FbPage() {}
 
@@ -18,14 +22,34 @@ public class FbPage {
         try {
             this.token = page.getString("access_token");
             this.category = page.getString("category");
-            this.categoryList = page.getJSONArray("category_list");
             this.name = page.getString("name");
             this.id = page.getString("id");
+            this.categoryList = page.getJSONArray("category_list");
             this.tasks = page.getJSONArray("tasks");
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
+    protected FbPage(Parcel in) {
+        token = in.readString();
+        category = in.readString();
+        id = in.readString();
+        name = in.readString();
+        instagramBusinessAccountId = in.readLong();
+    }
+
+    public static final Creator<FbPage> CREATOR = new Creator<FbPage>() {
+        @Override
+        public FbPage createFromParcel(Parcel in) {
+            return new FbPage(in);
+        }
+
+        @Override
+        public FbPage[] newArray(int size) {
+            return new FbPage[size];
+        }
+    };
 
     public String getName() {
         return name;
@@ -59,6 +83,14 @@ public class FbPage {
         this.token = token;
     }
 
+    public long getInstagramBusinessAccountId() {
+        return instagramBusinessAccountId;
+    }
+
+    public void setInstagramBusinessAccountId(long instagramBusinessAccountId) {
+        this.instagramBusinessAccountId = instagramBusinessAccountId;
+    }
+
     public JSONArray getCategoryList() {
         return categoryList;
     }
@@ -75,5 +107,18 @@ public class FbPage {
         this.tasks = tasks;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(token);
+        dest.writeString(category);
+        dest.writeString(id);
+        dest.writeString(name);
+        dest.writeLong(instagramBusinessAccountId);
+    }
 }
 

@@ -4,7 +4,8 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../../../../layout/custom_preview.xml" value="0.48333333333333334" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.4392956441149212" />
+        <entry key="app/src/main/res/layout/activity_fb_page_details.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="app/src/main/res/layout/content_main.xml" value="0.19322916666666667" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.13994565217391305" />
         <entry key="app/src/main/res/layout/item_fb_page.xml" value="0.19322916666666667" />
