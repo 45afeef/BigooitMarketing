@@ -100,7 +100,7 @@ public class FbPageDetailsActivity extends AppCompatActivity {
         }
     }
 
-    public void createIgContainer(AccessToken accessToken,String igBusinessId,String imageUrl,String caption){
+    public void createIgContainer(AccessToken accessToken,long igBusinessId,String imageUrl,String caption){
 
         Map<String,String> postObject = new HashMap<>();
 
@@ -112,26 +112,32 @@ public class FbPageDetailsActivity extends AppCompatActivity {
                 "/"+igBusinessId+"/media",
                 new JSONObject(postObject),
                 response -> {
-                    // Insert your code here
+                    try {
+                        String creationId = response.getJSONObject().getString("id");
+                        publishTheContainer(accessToken,creationId);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 });
 
         request.executeAsync();
     }
 
     public void publishTheContainer(AccessToken accessToken,String creationId){
-        try {
-            GraphRequest request = GraphRequest.newPostRequest(
-                    accessToken,
-                    "/17841451338977754/media_publish",
-                    new JSONObject("{\"creation_id\":\""+creationId+"\"}"),
-                    response -> {
-                        // Insert your code here
-                        Toast.makeText(this,"Yeah we have posted it"+response.toString(),Toast.LENGTH_LONG).show();
-                    });
-            request.executeAsync();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        Map<String,String> postObject = new HashMap<>();
+
+        postObject.put("creation_id",creationId);
+
+        GraphRequest request = GraphRequest.newPostRequest(
+                accessToken,
+                "/17841451338977754/media_publish",
+                new JSONObject(postObject),
+                response -> {
+                    // Insert your code here
+                    Toast.makeText(this,"Yeah we have posted it"+response.toString(),Toast.LENGTH_LONG).show();
+                });
+        request.executeAsync();
+
     }
 
     public void chooseImage(){
@@ -175,6 +181,8 @@ public class FbPageDetailsActivity extends AppCompatActivity {
                 .addOnSuccessListener(t -> {
                     // Add the download url to user gallery
                     uploadRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        // upload to instagram
+                        createIgContainer(accessToken,page.getInstagramBusinessAccountId(),uri.toString(),"This is a test from android");
 
                         Map<String,Object> galleryContent = new HashMap<>();
                         galleryContent.put("url",uri.toString());
